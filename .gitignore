@@ -1,0 +1,43 @@
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Environment Variables
+.env
+
+# Project Data Directories (Persistent State)
+tailscale-data/
+neo4j/data/
+mc-data/
+
+# Backup files
+*.bak
+backend/main.py.bak
+
+# Prometheus/Nodes Target State
+# These files are modified at runtime by the backend.
+# We ship *.json.example files instead.
+prometheus/targets_minio.json
+prometheus/targets_node.json
+backend/targets.json
+backend/targets_minio.json
+backend/targets_node.json
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

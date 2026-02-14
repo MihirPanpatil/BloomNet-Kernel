@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+neo4j
+pydantic
+requests
+python-multipart
+prometheus-fastapi-instrumentator

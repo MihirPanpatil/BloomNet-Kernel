@@ -1,0 +1,71 @@
+services:
+  # 1. The Kernel Network Gateway
+  tailscale-kernel:
+    image: tailscale/tailscale:latest
+    container_name: tailscale-kernel
+    hostname: bloom-kernel
+    environment:
+      - TS_AUTHKEY=${TAILSCALE_AUTHKEY} # REPLACE THIS
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false # [FIX] Required for sidecar containers to use the interface
+    volumes:
+      - ./tailscale-data:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - "8000:8000" # Backend API
+      - "3000:3000" # Grafana
+      - "7474:7474" # Neo4j HTTP
+      - "7687:7687" # Neo4j Bolt
+      - "9090:9090" # Prometheus
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    restart: unless-stopped
+
+  # 2. The Ledger (Neo4j)
+  neo4j:
+    image: neo4j:5.15
+    network_mode: service:tailscale-kernel
+    environment:
+      - NEO4J_AUTH=neo4j/bloomledger123
+      - NEO4J_server_default__listen__address=0.0.0.0
+    volumes:
+      - ./neo4j/data:/data
+    restart: unless-stopped
+
+  # 3. The Brain (Your Python API)
+  backend:
+    build: ./backend # We will create this folder next
+    network_mode: service:tailscale-kernel
+    depends_on:
+      - neo4j
+    volumes:
+      - ./backend:/app
+      - ./prometheus/targets_minio.json:/app/targets_minio.json # [NEW] MinIO Targets
+      - ./prometheus/targets_node.json:/app/targets_node.json   # [NEW] Node Targets
+    restart: on-failure
+
+  # 4. Metrics (Prometheus)
+  prometheus:
+    image: prom/prometheus
+    network_mode: service:tailscale-kernel
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/targets_minio.json:/etc/prometheus/targets_minio.json
+      - ./prometheus/targets_node.json:/etc/prometheus/targets_node.json
+    restart: unless-stopped
+
+  # 5. Visualization (Grafana)
+  grafana:
+    image: grafana/grafana
+    network_mode: service:tailscale-kernel
+    environment:
+      - GF_SERVER_HTTP_PORT=3000
+      - GF_SECURITY_ADMIN_USER=bloomadmin
+      - GF_SECURITY_ADMIN_PASSWORD=bloompassword
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning # [NEW] Auto-add Datasource
+      - ./grafana/dashboards:/etc/grafana/dashboards # [NEW] Auto-add Dashboard
+    restart: unless-stopped
