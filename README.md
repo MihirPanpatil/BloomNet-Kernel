@@ -19,7 +19,7 @@ The system uses a **Sidecar Networking** pattern where all services share the ne
 ```mermaid
 graph TD
     subgraph "Tailscale Kernel Pod"
-        TS[tailscale-kernel <br/> (Network Gateway)]
+        TS[tailscale-kernel (Network Gateway)]
         
         API[Backend API <br/> :8000]
         DB[(Neo4j Ledger <br/> :7687)]
