@@ -19,12 +19,12 @@ The system uses a **Sidecar Networking** pattern where all services share the ne
 ```mermaid
 graph TD
     subgraph "Tailscale Kernel Pod"
-        TS[tailscale-kernel (Network Gateway)]
+        TS["tailscale-kernel <br/> (Network Gateway)"]
         
-        API[Backend API <br/> :8000]
-        DB[(Neo4j Ledger <br/> :7687)]
-        PROM[Prometheus <br/> :9090]
-        GRAF[Grafana <br/> :3000]
+        API["Backend API <br/> :8000"]
+        DB[("Neo4j Ledger <br/> :7687")]
+        PROM["Prometheus <br/> :9090"]
+        GRAF["Grafana <br/> :3000"]
         
         TS --- API
         TS --- DB
@@ -32,9 +32,9 @@ graph TD
         TS --- GRAF
         
         API -->|Query/Update| DB
-        API -->|Configure| MC[MinIO Client]
+        API -->|Configure| MC["MinIO Client"]
         PROM -->|Scrape| API
-        PROM -->|Scrape| Nodes[Remote MinIO Nodes]
+        PROM -->|Scrape| Nodes["Remote MinIO Nodes"]
     end
     
     Nodes -->|Tailscale Tunnel| TS
